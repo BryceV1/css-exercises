@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+{% block title %}Projections Week {{ week }} – {{ league.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+  <h4 class="fw-bold mb-0"><i class="bi bi-graph-up-arrow me-2 text-accent"></i>Projections — Week {{ week }}</h4>
+  <a href="{{ url_for('waiver', league_key=league_key) }}" class="btn btn-outline-primary btn-sm">
+    <i class="bi bi-person-plus me-1"></i>Find Waiver Targets
+  </a>
+</div>
+
+{% set active = players | rejectattr('selected_position', 'in', ['BN', 'IR', 'IR+', 'NA']) | list %}
+{% set bench = players | selectattr('selected_position', 'in', ['BN']) | list %}
+{% set ir = players | selectattr('selected_position', 'in', ['IR', 'IR+', 'NA']) | list %}
+
+<!-- Active roster -->
+<div class="hf-card p-0 mb-4 overflow-hidden">
+  <div class="px-4 py-3 hf-card-header border-bottom">
+    <strong><i class="bi bi-lightning-charge-fill me-1 text-warning"></i> Active Roster</strong>
+    <span class="text-muted small ms-2">{{ active | length }} players</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0 hf-table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th class="text-center">Pos</th>
+          <th class="text-center">NHL</th>
+          {% for sid, cat in stat_cats.items() %}
+          <th class="text-center small" title="{{ cat.name }}">
+            {{ cat.display_name }}
+            <div class="text-muted" style="font-size:.65rem">Actual</div>
+          </th>
+          {% endfor %}
+          {% for sid, cat in stat_cats.items() %}
+          <th class="text-center small proj-col" title="Projected {{ cat.name }}">
+            {{ cat.display_name }}
+            <div class="text-accent" style="font-size:.65rem">Proj.</div>
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in active %}
+        <tr>
+          <td class="fw-semibold text-nowrap">
+            {{ p.full_name }}
+            {% if p.status %}<span class="badge bg-danger ms-1 small">{{ p.status }}</span>{% endif %}
+          </td>
+          <td class="text-center"><span class="pos-badge">{{ p.selected_position }}</span></td>
+          <td class="text-center text-muted small">{{ p.team_abbr }}</td>
+          {% for sid in stat_cats %}
+          <td class="text-center small">{{ p.stats.get(sid, '-') }}</td>
+          {% endfor %}
+          {% for sid in stat_cats %}
+          <td class="text-center small text-accent">{{ p.projected_stats.get(sid, '-') }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Bench -->
+{% if bench %}
+<div class="hf-card p-0 mb-4 overflow-hidden">
+  <div class="px-4 py-3 hf-card-header border-bottom">
+    <strong class="text-muted">Bench</strong>
+    <span class="text-muted small ms-2">{{ bench | length }} players</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0 hf-table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th class="text-center">Pos</th>
+          <th class="text-center">NHL</th>
+          {% for sid, cat in stat_cats.items() %}
+          <th class="text-center small" title="{{ cat.name }}">{{ cat.display_name }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in bench %}
+        <tr class="text-muted">
+          <td class="fw-semibold text-nowrap">{{ p.full_name }}</td>
+          <td class="text-center"><span class="pos-badge pos-bn">BN</span></td>
+          <td class="text-center small">{{ p.team_abbr }}</td>
+          {% for sid in stat_cats %}
+          <td class="text-center small">{{ p.stats.get(sid, '-') }}</td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- IR -->
+{% if ir %}
+<div class="hf-card p-0 mb-4 overflow-hidden">
+  <div class="px-4 py-3 hf-card-header border-bottom">
+    <strong class="text-danger"><i class="bi bi-bandaid me-1"></i>Injured Reserve</strong>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-sm mb-0 hf-table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th class="text-center">Slot</th>
+          <th class="text-center">NHL</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for p in ir %}
+        <tr class="text-danger">
+          <td class="fw-semibold">{{ p.full_name }}</td>
+          <td class="text-center"><span class="pos-badge pos-ir">{{ p.selected_position }}</span></td>
+          <td class="text-center text-muted small">{{ p.team_abbr }}</td>
+          <td class="small">{{ p.status or 'IR' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<p class="text-muted small">
+  <i class="bi bi-info-circle me-1"></i>
+  <em>Actual</em> columns show stats accumulated so far this week.
+  <em>Projected</em> columns show Yahoo's projected totals for the full week.
+</p>
+{% endblock %}

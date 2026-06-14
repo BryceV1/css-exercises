@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Waiver Wire – {{ league.name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+  <h4 class="fw-bold mb-0">
+    <i class="bi bi-person-plus-fill me-2 text-accent"></i>Waiver Wire
+    <span class="text-muted small fw-normal ms-2">Week {{ week }}</span>
+  </h4>
+</div>
+
+<!-- Filter bar -->
+<div class="hf-card p-3 mb-4">
+  <form method="get" class="row g-2 align-items-end">
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1">Sort by</label>
+      <select name="sort" class="form-select form-select-sm hf-select" onchange="this.form.submit()">
+        <option value="AR" {% if sort=='AR' %}selected{% endif %}>Add Rank</option>
+        <option value="PO" {% if sort=='PO' %}selected{% endif %}>% Owned</option>
+        {% for sid, cat in stat_cats.items() %}
+        <option value="{{ sid }}" {% if sort==sid %}selected{% endif %}>{{ cat.display_name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-auto">
+      <label class="form-label small text-muted mb-1">Position</label>
+      <select name="position" class="form-select form-select-sm hf-select" onchange="this.form.submit()">
+        <option value="" {% if not position %}selected{% endif %}>All</option>
+        <option value="C" {% if position=='C' %}selected{% endif %}>C</option>
+        <option value="LW" {% if position=='LW' %}selected{% endif %}>LW</option>
+        <option value="RW" {% if position=='RW' %}selected{% endif %}>RW</option>
+        <option value="D" {% if position=='D' %}selected{% endif %}>D</option>
+        <option value="G" {% if position=='G' %}selected{% endif %}>G</option>
+      </select>
+    </div>
+    <input type="hidden" name="league_key" value="{{ league_key }}">
+  </form>
+
+  {% if losing_cats %}
+  <div class="mt-3 pt-3 border-top">
+    <div class="small text-muted mb-1">Categories you're currently losing — prioritize these:</div>
+    <div class="d-flex flex-wrap gap-2">
+      {% for sid in losing_cats %}
+      {% if sid in stat_cats %}
+      <a href="?sort={{ sid }}&position={{ position }}" class="badge bg-danger text-decoration-none">
+        {{ stat_cats[sid].display_name }} ↓
+      </a>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Free agent table -->
+<div class="hf-card p-0 overflow-hidden">
+  <div class="px-4 py-3 hf-card-header border-bottom">
+    <strong>Free Agents</strong>
+    <span class="text-muted small ms-2">Projected stats for Week {{ week }}</span>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0 hf-table">
+      <thead>
+        <tr>
+          <th>Player</th>
+          <th class="text-center">Pos</th>
+          <th class="text-center">NHL Team</th>
+          <th class="text-center">% Owned</th>
+          <th class="text-center text-muted small">Trend</th>
+          {% for sid, cat in stat_cats.items() %}
+          <th class="text-center small {% if sid in losing_cats %}text-danger{% endif %}"
+              title="{{ cat.name }}{% if sid in losing_cats %} — you're losing this{% endif %}">
+            {{ cat.display_name }}
+            {% if sid in losing_cats %}<i class="bi bi-arrow-down-circle-fill text-danger ms-1"></i>{% endif %}
+          </th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for fa in free_agents %}
+        <tr>
+          <td class="fw-semibold text-nowrap">
+            {{ fa.full_name }}
+            {% if fa.status %}<span class="badge bg-danger ms-1 small">{{ fa.status }}</span>{% endif %}
+          </td>
+          <td class="text-center"><span class="pos-badge">{{ fa.position }}</span></td>
+          <td class="text-center text-muted small">{{ fa.team_abbr }}</td>
+          <td class="text-center">
+            <div class="ownership-bar" title="{{ fa.pct_owned }}% owned">
+              <div class="ownership-fill" style="width: {{ [fa.pct_owned | float(0), 100] | min }}%"></div>
+              <span>{{ fa.pct_owned }}%</span>
+            </div>
+          </td>
+          <td class="text-center small">
+            {% set delta = fa.pct_delta | float(0) %}
+            {% if delta > 0 %}
+            <span class="text-success">+{{ fa.pct_delta }}%</span>
+            {% elif delta < 0 %}
+            <span class="text-danger">{{ fa.pct_delta }}%</span>
+            {% else %}
+            <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          {% for sid in stat_cats %}
+          <td class="text-center small {% if sid in losing_cats %}text-warning{% endif %}">
+            {{ fa.stats.get(sid, '-') }}
+          </td>
+          {% endfor %}
+        </tr>
+        {% else %}
+        <tr><td colspan="20" class="text-center text-muted py-4">No free agents found.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="text-muted small mt-3">
+  <i class="bi bi-info-circle me-1"></i>
+  Stats shown are Yahoo's projected totals for the current week.
+  Red badges on category headers = categories you're losing in the current matchup.
+</p>
+{% endblock %}
