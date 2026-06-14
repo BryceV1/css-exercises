@@ -1,0 +1,245 @@
+/* ── Base ─────────────────────────────────────────────────────────────── */
+:root {
+  --bg-page:    #0a0e1a;
+  --bg-card:    #131929;
+  --bg-header:  #0d1420;
+  --border:     #1e2d45;
+  --text:       #d8e4f0;
+  --text-muted: #5a7a9a;
+  --accent:     #2b9fdb;
+  --accent-dim: #1a4a6e;
+  --win-bg:     rgba(0, 180, 80, 0.08);
+  --loss-bg:    rgba(210, 50, 50, 0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  font-size: .9rem;
+}
+
+a { color: var(--accent); }
+a:hover { color: #5bc3f0; }
+
+/* ── Navbar ───────────────────────────────────────────────────────────── */
+.hf-navbar {
+  background: var(--bg-header);
+  border-bottom: 1px solid var(--border);
+}
+
+.hf-navbar .navbar-brand {
+  color: #fff;
+  font-size: 1rem;
+  letter-spacing: .02em;
+}
+
+.hf-navbar .nav-link {
+  color: var(--text-muted);
+  font-size: .85rem;
+  padding: .4rem .65rem;
+  border-radius: 6px;
+  transition: background .15s, color .15s;
+}
+
+.hf-navbar .nav-link:hover,
+.hf-navbar .nav-link.active {
+  background: var(--accent-dim);
+  color: #fff;
+}
+
+/* ── Cards ────────────────────────────────────────────────────────────── */
+.hf-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+}
+
+.hf-card-header {
+  background: var(--bg-header);
+  font-size: .85rem;
+}
+
+.hover-card {
+  transition: border-color .15s, transform .1s;
+}
+.hover-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  color: var(--text);
+}
+
+/* ── Accent color ─────────────────────────────────────────────────────── */
+.text-accent { color: var(--accent) !important; }
+
+/* ── Buttons ──────────────────────────────────────────────────────────── */
+.btn-yahoo {
+  background: #7B0099;
+  color: #fff;
+  border: none;
+  font-weight: 600;
+}
+.btn-yahoo:hover {
+  background: #9600be;
+  color: #fff;
+}
+
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.btn-primary:hover {
+  background: #1a87c2;
+  border-color: #1a87c2;
+}
+
+.btn-outline-primary {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.btn-outline-primary:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+.btn-outline-secondary {
+  color: var(--text-muted);
+  border-color: var(--border);
+  background: transparent;
+}
+.btn-outline-secondary:hover {
+  background: var(--bg-header);
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+/* ── Tables ───────────────────────────────────────────────────────────── */
+.hf-table {
+  color: var(--text);
+  --bs-table-bg: transparent;
+  --bs-table-hover-bg: rgba(43, 159, 219, 0.06);
+  --bs-table-border-color: var(--border);
+}
+
+.hf-table thead th {
+  background: var(--bg-header);
+  color: var(--text-muted);
+  font-size: .75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  border-bottom: 1px solid var(--border);
+  padding: .5rem .75rem;
+  white-space: nowrap;
+}
+
+.hf-table td {
+  padding: .45rem .75rem;
+  vertical-align: middle;
+  border-bottom: 1px solid rgba(30, 45, 69, .6);
+}
+
+.hf-table tr:last-child td { border-bottom: none; }
+
+/* Category result rows */
+.cat-win { background-color: var(--win-bg) !important; }
+.cat-loss { background-color: var(--loss-bg) !important; }
+
+/* Projected stats column */
+.proj-col { background: rgba(43, 159, 219, 0.03); }
+
+/* ── Position badges ──────────────────────────────────────────────────── */
+.pos-badge {
+  display: inline-block;
+  font-size: .68rem;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.pos-badge.pos-bn {
+  background: rgba(90, 122, 154, 0.2);
+  color: var(--text-muted);
+}
+
+.pos-badge.pos-ir {
+  background: rgba(210, 50, 50, 0.15);
+  color: #e57373;
+}
+
+/* ── Ownership bar ────────────────────────────────────────────────────── */
+.ownership-bar {
+  position: relative;
+  background: var(--bg-header);
+  border-radius: 4px;
+  height: 20px;
+  min-width: 70px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ownership-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  background: var(--accent-dim);
+  transition: width .3s;
+}
+
+.ownership-bar span {
+  position: relative;
+  font-size: .72rem;
+  font-weight: 600;
+  color: var(--text);
+  z-index: 1;
+}
+
+/* ── Select ───────────────────────────────────────────────────────────── */
+.hf-select {
+  background: var(--bg-header);
+  border-color: var(--border);
+  color: var(--text);
+  font-size: .85rem;
+}
+.hf-select:focus {
+  background: var(--bg-header);
+  border-color: var(--accent);
+  color: var(--text);
+  box-shadow: 0 0 0 2px rgba(43, 159, 219, .25);
+}
+.hf-select option {
+  background: var(--bg-card);
+  color: var(--text);
+}
+
+/* ── Alert overrides ──────────────────────────────────────────────────── */
+.alert {
+  font-size: .85rem;
+  border-radius: 8px;
+}
+.alert-success  { background: rgba(0,180,80,.12); border-color: rgba(0,180,80,.3); color: #4cde8c; }
+.alert-info     { background: rgba(43,159,219,.1); border-color: rgba(43,159,219,.3); color: var(--accent); }
+.alert-warning  { background: rgba(255,160,0,.1);  border-color: rgba(255,160,0,.3); color: #ffc947; }
+.alert-danger   { background: rgba(210,50,50,.12); border-color: rgba(210,50,50,.3); color: #ef9a9a; }
+
+/* ── Scrollbar ────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-page); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ── Responsive tweaks ────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .hf-table thead th,
+  .hf-table td { font-size: .75rem; padding: .35rem .5rem; }
+  .display-5 { font-size: 1.8rem; }
+}

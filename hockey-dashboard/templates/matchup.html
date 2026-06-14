@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+{% block title %}Matchup Week {{ week }} – {{ league.name }}{% endblock %}
+
+{% block content %}
+{% set stat_cats = matchup.stat_categories if matchup else {} %}
+{% set my_t = matchup.teams | selectattr('is_mine') | first if matchup else none %}
+{% set opp_t = matchup.teams | rejectattr('is_mine') | first if matchup else none %}
+
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+  <h4 class="fw-bold mb-0">Matchup — Week {{ week }}</h4>
+  <div class="d-flex gap-2">
+    {% if week | int > 1 %}
+    <a href="{{ url_for('matchup', league_key=league_key, week=week|int - 1) }}" class="btn btn-outline-secondary btn-sm">
+      <i class="bi bi-chevron-left"></i> Prev Week
+    </a>
+    {% endif %}
+    <a href="{{ url_for('matchup', league_key=league_key, week=week|int + 1) }}" class="btn btn-outline-secondary btn-sm">
+      Next Week <i class="bi bi-chevron-right"></i>
+    </a>
+  </div>
+</div>
+
+{% if matchup and my_t and opp_t %}
+
+<!-- Team score banner -->
+<div class="hf-card p-4 mb-4">
+  <div class="row align-items-center text-center">
+    <div class="col">
+      <div class="fw-bold fs-4">{{ my_t.name }}</div>
+      <div class="badge bg-primary">You</div>
+    </div>
+    <div class="col-auto px-5">
+      <div class="display-5 fw-bold text-accent">{{ my_t.total_points }} – {{ opp_t.total_points }}</div>
+      <div class="text-muted small">
+        {% if matchup.status == 'postevent' %}Final
+        {% elif matchup.status == 'midevent' %}In Progress
+        {% else %}Scheduled{% endif %}
+        · Week {{ week }}
+      </div>
+    </div>
+    <div class="col">
+      <div class="fw-bold fs-4">{{ opp_t.name }}</div>
+      <div class="badge bg-secondary">Opponent</div>
+    </div>
+  </div>
+</div>
+
+<!-- Category comparison -->
+<div class="hf-card p-0 mb-4 overflow-hidden">
+  <div class="px-4 py-3 hf-card-header border-bottom">
+    <strong><i class="bi bi-bar-chart-steps me-2"></i>Category Results</strong>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-dark table-hover mb-0 hf-table">
+      <thead>
+        <tr>
+          <th style="width:40px" class="text-center"></th>
+          <th>Category</th>
+          <th class="text-center">{{ my_t.name | truncate(20, true) }}</th>
+          <th class="text-center">{{ opp_t.name | truncate(20, true) }}</th>
+          <th class="text-center text-muted small">Sort</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for sid, cat in stat_cats.items() %}
+        {% set mv_raw = my_t.stats.get(sid, '-') %}
+        {% set ov_raw = opp_t.stats.get(sid, '-') %}
+        {% set higher_better = cat.sort_order == '1' %}
+        {% set win = false %}
+        {% set loss = false %}
+        {% if mv_raw != '-' and ov_raw != '-' %}
+          {% set mv = mv_raw | float(0) %}
+          {% set ov = ov_raw | float(0) %}
+          {% if higher_better %}
+            {% set win = mv > ov %}
+            {% set loss = mv < ov %}
+          {% else %}
+            {% set win = mv < ov %}
+            {% set loss = mv > ov %}
+          {% endif %}
+        {% endif %}
+        <tr class="{% if win %}cat-win{% elif loss %}cat-loss{% endif %}">
+          <td class="text-center">
+            {% if win %}<i class="bi bi-check-circle-fill text-success"></i>
+            {% elif loss %}<i class="bi bi-x-circle-fill text-danger"></i>
+            {% else %}<i class="bi bi-dash-circle text-muted"></i>{% endif %}
+          </td>
+          <td class="fw-semibold">{{ cat.display_name }}</td>
+          <td class="text-center fw-bold {% if win %}text-success{% elif loss %}text-danger{% endif %}">{{ mv_raw }}</td>
+          <td class="text-center {% if loss %}text-success fw-bold{% elif win %}text-danger{% endif %}">{{ ov_raw }}</td>
+          <td class="text-center text-muted small">{{ '↑' if higher_better else '↓' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Both rosters side by side -->
+<div class="row g-4">
+  {% for team in [my_t, opp_t] %}
+  <div class="col-lg-6">
+    <div class="hf-card p-0 overflow-hidden h-100">
+      <div class="px-4 py-3 hf-card-header border-bottom d-flex align-items-center justify-content-between">
+        <strong>{{ team.name }}</strong>
+        {% if team.is_mine %}<span class="badge bg-primary">You</span>{% endif %}
+      </div>
+      <div class="table-responsive">
+        <table class="table table-dark table-sm table-hover mb-0 hf-table">
+          <thead>
+            <tr>
+              <th>Player</th>
+              <th class="text-center">Pos</th>
+              <th class="text-center">Team</th>
+              {% for sid, cat in stat_cats.items() %}
+              <th class="text-center small" title="{{ cat.name }}">{{ cat.display_name }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in team.players %}
+            <tr class="{% if p.selected_position == 'BN' %}text-muted{% elif p.selected_position in ['IR', 'IR+', 'NA'] %}text-danger{% endif %}">
+              <td class="fw-semibold text-nowrap">
+                {{ p.full_name }}
+                {% if p.status %}<span class="badge bg-danger ms-1 small">{{ p.status }}</span>{% endif %}
+              </td>
+              <td class="text-center">
+                <span class="pos-badge">{{ p.selected_position }}</span>
+              </td>
+              <td class="text-center text-muted small">{{ p.team_abbr }}</td>
+              {% for sid in stat_cats %}
+              <td class="text-center small">{{ p.stats.get(sid, '-') }}</td>
+              {% endfor %}
+            </tr>
+            {% else %}
+            <tr><td colspan="20" class="text-center text-muted py-3">No roster data</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="hf-card p-5 text-center text-muted">
+  <i class="bi bi-calendar-x fs-1 mb-3 d-block"></i>
+  <p>No matchup data available for Week {{ week }}.</p>
+</div>
+{% endif %}
+{% endblock %}
